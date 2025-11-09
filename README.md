@@ -107,46 +107,230 @@ mvn exec:java
 
 ## Uso del Sistema
 
-Al ejecutar el programa, siga las instrucciones en pantalla:
+El programa consta de dos partes principales:
 
-1. **Ingrese email**: Use formato válido (ej: `juan@example.com`)
-2. **Ingrese teléfono**: Cualquier formato (se formateará automáticamente)
-3. **Ingrese nombre**: Nombre completo del cliente
-4. **Ingrese cantidad**: Número de mascotas (1-100)
+### Parte 1: Registro de Consulta Veterinaria (Aplicación Funcional)
 
-El sistema ejecutará automáticamente todas las demostraciones de funcionalidades avanzadas.
+Al ejecutar, el sistema solicitará paso a paso:
 
-## Ejemplos de Salida
+1. **Datos del Dueño**
+   - Email (se valida con regex)
+   - Teléfono (se formatea automáticamente)
+   - Nombre completo
+
+2. **Datos de la Mascota**
+   - Nombre de la mascota
+   - Especie (Perro/Gato/Otro)
+   - Edad (años)
+   - Peso (kg)
+
+3. **Información de la Consulta**
+   - Motivo de la consulta
+   - Número de mascotas a atender (1-100, validado con ranges)
+
+4. **Agendamiento**
+   - Fecha (DD/MM/YYYY, se verifica si está en periodo promocional)
+   - Hora (HH:MM, se verifica disponibilidad del veterinario)
+
+5. **Selección de Medicamentos**
+   - Se muestra catálogo con precios y promociones
+   - Selección mediante números separados por comas
+
+6. **Resumen de Consulta**
+   - Muestra todos los datos ingresados
+   - Cálculo total con descuentos aplicados
+
+### Parte 2: Demostración Técnica
+
+Después de presionar ENTER, el sistema ejecuta automáticamente una demostración de todas las funcionalidades avanzadas de Kotlin.
+
+## Ejemplo de Salida
 
 ```
 ═══════════════════════════════════════════════════════════════
 SISTEMA DE GESTIÓN VETERINARIA
 ═══════════════════════════════════════════════════════════════
 
---- PASO 1: VALIDACIÓN CON REGEX ---
+
+
+--- DATOS DEL DUEÑO ---
 
 Ingrese su email:
-juan.perez@example.com
-✓ Email validado correctamente: juan.perez@example.com
-
+franco@castro.cl
 Ingrese su teléfono (cualquier formato):
-912345678
-✓ Teléfono formateado: +56 (912) 345-6789
+986107382
+  ✓ Teléfono formateado: +56 (986) 107-382
+Ingrese su nombre completo: Franco Castro
 
---- PASO 2: VALIDACIÓN CON RANGES ---
+✓ Cliente registrado: Franco Castro
+-----------------------------------------------------------
 
-Ingrese número de mascotas a atender (1-100):
-2
-✓ Cantidad validada: 2 mascotas
+--- DATOS DE LA MASCOTA ---
 
---- PASO 3: ANOTACIONES Y REFLECTION ---
+Ingrese el nombre de la mascota: Pepita
+Ingrese la especie (Perro/Gato/Otro): Gato
+Ingrese la edad de la mascota (años): 12
+Ingrese el peso de la mascota (kg): 32
 
-Medicamentos promocionales encontrados: 3
+✓ Mascota registrada: Pepita (Gato, 12 años, 32.0kg)
+-----------------------------------------------------------
+
+--- INFORMACIÓN DE LA CONSULTA ---
+
+Ingrese el motivo de la consulta: Dolor de pie
+¿Cuántas mascotas atenderá en esta consulta? (1-100):
+1
+
+
+--- AGENDAMIENTO ---
+
+Ingrese la fecha deseada (DD/MM/YYYY): 30/10/2025
+  ✓ Fecha confirmada: 30/10/2025
+
+Ingrese la hora deseada (HH:MM): 14:00
+  ✓ Hora solicitada: 14:00
+
+✓ CONSULTA CONFIRMADA
+Fecha: 30/10/2025
+Hora: 14:00
+
+Por favor, llegue 10 minutos antes de su cita.
+Recibirá un correo de confirmación.
+
+-----------------------------------------------------------
+
+--- SELECCIÓN DE MEDICAMENTOS ---
+
+Medicamentos disponibles:
+  1. Amoxicilina (500mg) - $15000.00 [PROMOCIÓN 20%]
+  2. Ivermectina (10ml) - $12000.00 [PROMOCIÓN 15%]
+  3. Vacuna Triple (1 dosis) - $25000.00 [PROMOCIÓN 10%]
+  4. Analgésico (50mg) - $8000.00
+  5. Vitaminas (100ml) - $18000.00
+
+Ingrese los números de medicamentos separados por comas (ej: 1,3,5) o ENTER para ninguno: 1,5
+
+✓ Medicamentos seleccionados: 2
+  - Amoxicilina (500mg)
+  - Vitaminas (100ml)
+-----------------------------------------------------------
+
+--- CÁLCULO DE COSTOS ---
+
+Costo base de consulta: $30,000
+Total medicamentos: $30000.00
+
+✓ TOTAL A PAGAR: $60000.00
+
+-----------------------------------------------------------
+
+═══════════════════════════════════════════════════════════════
+RESUMEN DE LA CONSULTA
+═══════════════════════════════════════════════════════════════
+
+ID Consulta: 4958
+Estado: Confirmada
+Fecha registro: 2025-11-08T21:38:34.585826882
+
+CLIENTE:
+  Nombre: Franco Castro
+  Email: franco@castro.cl
+  Teléfono: +56 (986) 107-382
+
+MASCOTA:
+  Nombre: Pepita
+  Especie: Gato
+  Edad: 12 años
+  Peso: 32.0 kg
+
+DETALLES:
+  Motivo: Dolor de pie
+  Fecha agendada: 30/10/2025
+  Hora agendada: 14:00
+  Número de mascotas: 1
+
+MEDICAMENTOS (2):
+  - Amoxicilina (500mg): $12000.00 [20% desc]
+  - Vitaminas (100ml): $18000.00
+
+TOTAL: $60000.00
+
+✓ Consulta confirmada - Por favor llegue 10 minutos antes
+-----------------------------------------------------------
+
+Presione ENTER para ver el resumen técnico de funcionalidades...
+
+
+
+
+═══════════════════════════════════════════════════════════════
+RESUMEN TÉCNICO - FUNCIONALIDADES KOTLIN AVANZADAS
+═══════════════════════════════════════════════════════════════
+
+
+--- 1. REGEX Y RANGES ---
+
+✓ Email validado con Regex: franco@castro.cl
+✓ Teléfono formateado con Regex: +56 (986) 107-382
+✓ Cantidad validada en rango (1-100): 1
+✓ Fecha verificada en periodo promocional: false
+
+
+--- 2. ANOTACIONES Y REFLECTION ---
+
+✓ Medicamentos promocionales identificados: 3
   - Amoxicilina: 20% descuento
   - Ivermectina: 15% descuento
   - Vacuna Triple: 10% descuento
 
-...
+✓ Análisis con Reflection:
+  Cliente: 3 propiedades
+  Consulta: 7 métodos
+
+
+--- 3. OPERATOR OVERLOADING ---
+
+✓ Operator + (combinar consultas):
+  Consulta 1: $60000.00
+  Consulta 2: $40200.00
+  Combinada: $100200.00
+
+✓ Operator == (comparar medicamentos):
+  Amoxicilina == Amoxicilina: true
+  Amoxicilina == Ibuprofeno: false
+
+
+--- 4. DESESTRUCTURACIÓN ---
+
+✓ Cliente desestructurado:
+  val (nombre, email, telefono) = cliente
+  → Franco Castro, franco@castro.cl, +56 (986) 107-382
+
+✓ Consulta desestructurada:
+  val (cliente, medicamentos, total) = consulta
+  → Franco Castro, 3 medicamentos, $100200.00
+
+
+--- 5. EQUALS/HASHCODE - PREVENCIÓN DE DUPLICADOS ---
+
+✓ Detección de clientes duplicados:
+  Total clientes: 3
+  Únicos: 2
+  Duplicados: 1
+    - Franco Castro (franco@castro.cl)
+
+✓ Detección de medicamentos duplicados:
+  Total medicamentos: 3
+  Únicos: 2
+  Duplicados: 1
+    - Amoxicilina 500mg
+
+-----------------------------------------------------------
+✓ SISTEMA EJECUTADO EXITOSAMENTE
+ℹ Consulta registrada y funcionalidades Kotlin demostradas
+
+Gracias por usar el Sistema de Gestión Veterinaria
+
 ```
 
 ## Cumplimiento de Rúbrica

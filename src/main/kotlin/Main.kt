@@ -1,262 +1,345 @@
 package org.example
 
+import model.*
+import service.*
+import utils.*
+import view.ConsoleView
+import java.time.LocalDate
+
 /**
  * Sistema de Gestión de Consultas Veterinaria
  * Desarrollado para: PMY2201 - Desarrollo App Móviles
- * Semana 1: Mi primera app en Kotlin
+ * Semana 3: Creando soluciones con Kotlin
  */
 
 fun main() {
-    println("=".repeat(60))
-    println("    SISTEMA DE GESTIÓN VETERINARIA")
-    println("=".repeat(60))
+    ConsoleView.mostrarEncabezado("SISTEMA DE GESTIÓN VETERINARIA")
     println()
 
     // =========================================================================
-    // PASO 1: DECLARACIÓN DE VARIABLES Y TIPOS DE DATOS
+    // PARTE 1: REGISTRO DE CONSULTA (APP FUNCIONAL)
     // =========================================================================
 
-    // Variables para MASCOTA (usando val ya que no cambiarán después de asignarse)
-    val nombreMascota: String
-    val especie: String
-    val edadMascota: Int
-    val pesoMascota: Double
+    // --- DATOS DEL CLIENTE (DUEÑO) ---
+    ConsoleView.mostrarSubtitulo("DATOS DEL DUEÑO")
 
-    // Variables para DUEÑO (usando val para datos inmutables)
-    val nombreDueño: String
-    val telefono: String
-    val email: String
+    val email = ValidacionUtils.solicitarEmailValido("Ingrese su email:")
+    val telefono = ValidacionUtils.solicitarTelefonoFormateado("Ingrese su teléfono (cualquier formato):")
 
-    // Variables para CONSULTA
-    val idConsulta: Int = (1000..9999).random() // ID único generado automáticamente
-    val descripcionConsulta: String
-    var costoConsulta: Double // var porque se actualizará con descuento
-    var estadoConsulta: String // var porque cambiará según disponibilidad
-
-    // Variables adicionales para gestión
-    var numeroMascotas: Int
-    val disponibilidadVeterinario: Boolean
-    val fechaSolicitada: String
-    val horaSolicitada: String
-
-    // =========================================================================
-    // PASO 2: ENTRADA Y SALIDA DE DATOS CON MANEJO DE ERRORES
-    // =========================================================================
-
-    println("--- REGISTRO DE MASCOTA ---")
+    print("Ingrese su nombre completo: ")
+    val nombreCliente = readLine()?.trim() ?: "Cliente Anónimo"
     println()
 
-    // Captura de nombre de mascota con validación de nulos
+    val cliente = Cliente(nombreCliente, email, telefono)
+    ConsoleView.mostrarExito("Cliente registrado: $nombreCliente")
+    ConsoleView.mostrarSeparador()
+
+    // --- DATOS DE LA MASCOTA ---
+    ConsoleView.mostrarSubtitulo("DATOS DE LA MASCOTA")
+
     print("Ingrese el nombre de la mascota: ")
-    nombreMascota = readLine()?.takeIf { it.isNotBlank() } ?: "Sin nombre"
+    val nombreMascota = readLine()?.takeIf { it.isNotBlank() } ?: "Sin nombre"
 
-    // Captura de especie con validación
     print("Ingrese la especie (Perro/Gato/Otro): ")
-    especie = readLine()?.takeIf { it.isNotBlank() } ?: "Sin especificar"
+    val especie = readLine()?.takeIf { it.isNotBlank() } ?: "Sin especificar"
 
-    // Captura de edad con manejo de errores y valor predeterminado
     print("Ingrese la edad de la mascota (años): ")
-    edadMascota = try {
-        readLine()?.toIntOrNull()?.takeIf { it >= 0 } ?: 0
-    } catch (e: Exception) {
-        println("  ⚠ Error en la entrada. Se asignó edad predeterminada: 0")
-        0
-    }
+    val edad = readLine()?.toIntOrNull()?.takeIf { it >= 0 } ?: 0
 
-    // Captura de peso con manejo de errores y valor predeterminado
     print("Ingrese el peso de la mascota (kg): ")
-    pesoMascota = try {
-        readLine()?.toDoubleOrNull()?.takeIf { it > 0.0 } ?: 1.0
-    } catch (e: Exception) {
-        println("  ⚠ Error en la entrada. Se asignó peso predeterminado: 1.0 kg")
-        1.0
-    }
+    val peso = readLine()?.toDoubleOrNull()?.takeIf { it > 0 } ?: 1.0
 
     println()
-    println("--- REGISTRO DE DUEÑO ---")
-    println()
+    val mascota = Mascota(nombreMascota, especie, edad, peso)
+    ConsoleView.mostrarExito("Mascota registrada: $nombreMascota ($especie, $edad años, ${peso}kg)")
+    ConsoleView.mostrarSeparador()
 
-    // Captura de datos del dueño con validación
-    print("Ingrese el nombre del dueño: ")
-    nombreDueño = readLine()?.takeIf { it.isNotBlank() } ?: "Sin nombre"
+    // --- CONSULTA ---
+    ConsoleView.mostrarSubtitulo("INFORMACIÓN DE LA CONSULTA")
 
-    print("Ingrese el teléfono de contacto: ")
-    telefono = readLine()?.takeIf { it.isNotBlank() } ?: "No proporcionado"
-
-    print("Ingrese el correo electrónico: ")
-    email = readLine()?.takeIf { it.isNotBlank() } ?: "no-email@example.com"
-
-    println()
-    println("--- REGISTRO DE CONSULTA ---")
-    println()
-
-    // Captura de descripción de la consulta
     print("Ingrese el motivo de la consulta: ")
-    descripcionConsulta = readLine()?.takeIf { it.isNotBlank() } ?: "Consulta general"
+    val motivoConsulta = readLine()?.takeIf { it.isNotBlank() } ?: "Consulta general"
 
-    // =========================================================================
-    // PASO 3: CÁLCULO DEL COSTO CON DESCUENTO
-    // =========================================================================
-
-    // Captura del costo inicial de la consulta
-    print("Ingrese el costo de la consulta ($): ")
-    val costoInicial: Double = try {
-        readLine()?.toDoubleOrNull()?.takeIf { it > 0.0 } ?: 30000.0
-    } catch (e: Exception) {
-        println("  ⚠ Error en la entrada. Se asignó costo predeterminado: $30000")
-        30000.0
-    }
-
-    // Captura del número de mascotas para aplicar descuento
-    print("Ingrese el número de mascotas a atender en esta consulta: ")
-    numeroMascotas = try {
-        readLine()?.toIntOrNull()?.takeIf { it > 0 } ?: 1
-    } catch (e: Exception) {
-        println("  ⚠ Error en la entrada. Se asignó valor predeterminado: 1")
-        1
-    }
-
-    // Cálculo del descuento usando expresión if
-    // Descuento del 15% si se atiende más de una mascota
-    val descuentoAplicado: Double = if (numeroMascotas > 1) 0.15 else 0.0
-    costoConsulta = if (numeroMascotas > 1) {
-        costoInicial * (1 - descuentoAplicado)
-    } else {
-        costoInicial
-    }
-
-    // Mostrar información del descuento
-    println()
-    if (numeroMascotas > 1) {
-        println("✓ Descuento aplicado: ${descuentoAplicado * 100}% por atender $numeroMascotas mascotas")
-        println("  Costo original: \$${String.format("%.2f", costoInicial)}")
-        println("  Costo con descuento: \$${String.format("%.2f", costoConsulta)}")
-        println("  Ahorro: \$${String.format("%.2f", costoInicial - costoConsulta)}")
-    } else {
-        println("  No se aplicó descuento (se atiende solo 1 mascota)")
-        println("  Costo de la consulta: \$${String.format("%.2f", costoConsulta)}")
-    }
-
-    // =========================================================================
-    // PASO 4: VERIFICACIÓN DE DISPONIBILIDAD DEL VETERINARIO
-    // =========================================================================
+    val numeroMascotas = RangoUtils.solicitarCantidadValida(
+        "¿Cuántas mascotas atenderá en esta consulta? (1-100):"
+    )
 
     println()
-    println("--- VERIFICACIÓN DE DISPONIBILIDAD ---")
-    println()
 
-    // Solicitar fecha y hora deseada
+    // --- FECHA Y HORA ---
+    ConsoleView.mostrarSubtitulo("AGENDAMIENTO")
+
     print("Ingrese la fecha deseada (DD/MM/YYYY): ")
-    fechaSolicitada = readLine()?.takeIf { it.isNotBlank() } ?: "No especificada"
+    val fechaStr = readLine()?.trim() ?: ""
+    val fechaConsulta = RangoUtils.parsearFecha(fechaStr) ?: LocalDate.now()
+
+    // Mostrar cómo quedó parseada la fecha
+    val fechaFormateada = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy").format(fechaConsulta)
+    println("  ✓ Fecha confirmada: $fechaFormateada")
+
+    // Verificar si está en periodo promocional
+    if (RangoUtils.estaEnPeriodoPromocional(fechaConsulta)) {
+        println("  ℹ Esta fecha está en periodo promocional (15% descuento)")
+    }
+    println()
 
     print("Ingrese la hora deseada (HH:MM): ")
-    horaSolicitada = readLine()?.takeIf { it.isNotBlank() } ?: "No especificada"
+    val horaStr = readLine()?.trim() ?: "10:00"
 
-    // Simulación de verificación de disponibilidad
-    // En una aplicación real, esto consultaría una base de datos
-    print("Verificando disponibilidad del veterinario... ")
-
-    // Simulación: El veterinario está disponible si la hora solicitada es entre 09:00 y 18:00
-    disponibilidadVeterinario = try {
-        val hora = horaSolicitada.substringBefore(':').toIntOrNull() ?: 0
-        hora in 9..17
-    } catch (e: Exception) {
-        false
-    }
-
+    // Mostrar hora confirmada
+    println("  ✓ Hora solicitada: $horaStr")
     println()
 
-    // Usar if como expresión para determinar el estado y mensaje
-    val mensajeDisponibilidad: String = if (disponibilidadVeterinario) {
-        estadoConsulta = "Confirmada"
-        """
-        ✓ CONSULTA CONFIRMADA
-        El veterinario está disponible en la fecha y hora solicitada.
-        Fecha: $fechaSolicitada
-        Hora: $horaSolicitada
-        La consulta ha sido registrada exitosamente.
-        """.trimIndent()
-    } else {
-        estadoConsulta = "Pendiente"
-        """
-        ✗ VETERINARIO NO DISPONIBLE
-        Lo sentimos, el veterinario no está disponible en el horario solicitado.
-
-        Sugerencias de horarios disponibles:
-        - Mañana: 09:00 - 12:00
-        - Tarde: 14:00 - 17:00
-
-        Por favor, contacte con recepción para reagendar su consulta.
-        Estado actual: Pendiente de confirmación
-        """.trimIndent()
-    }
-
+    // Verificar disponibilidad
+    val (disponible, mensajeDisponibilidad) = VeterinarioService.verificarDisponibilidad(horaStr, fechaStr)
     println(mensajeDisponibilidad)
-
-    // =========================================================================
-    // PASO 5 y 6: RESUMEN DEL PEDIDO
-    // =========================================================================
-
-    println()
-    println("=".repeat(60))
-    println("    RESUMEN DE LA CONSULTA")
-    println("=".repeat(60))
     println()
 
-    // Información de confirmación
-    println("ID de Consulta: #$idConsulta")
-    println("Fecha de registro: ${java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))}")
-    println()
+    val estadoConsulta = if (disponible) "Confirmada" else "Pendiente"
 
-    // Datos del dueño
-    println("--- DATOS DEL DUEÑO ---")
-    println("Nombre: $nombreDueño")
-    println("Teléfono: $telefono")
-    println("Email: $email")
-    println()
+    ConsoleView.mostrarSeparador()
 
-    // Información de la mascota
-    println("--- INFORMACIÓN DE LA MASCOTA ---")
-    println("Nombre: $nombreMascota")
-    println("Especie: $especie")
-    println("Edad: $edadMascota año(s)")
-    println("Peso: ${String.format("%.2f", pesoMascota)} kg")
-    println()
+    // --- MEDICAMENTOS ---
+    ConsoleView.mostrarSubtitulo("SELECCIÓN DE MEDICAMENTOS")
 
-    // Detalles de la consulta
-    println("--- DETALLES DE LA CONSULTA ---")
-    println("Motivo: $descripcionConsulta")
-    println("Fecha solicitada: $fechaSolicitada")
-    println("Hora solicitada: $horaSolicitada")
-    println("Número de mascotas: $numeroMascotas")
+    // Mostrar catálogo
+    val catalogoMedicamentos = listOf(
+        Antibiotico(),
+        Antiparasitario(),
+        Vacuna(),
+        Medicamento("Analgésico", "50mg", 8000.0, 100),
+        Medicamento("Vitaminas", "100ml", 18000.0, 40)
+    )
 
-    if (numeroMascotas > 1) {
-        println("Costo sin descuento: \$${String.format("%.2f", costoInicial)}")
-        println("Descuento aplicado: ${descuentoAplicado * 100}%")
+    println("Medicamentos disponibles:")
+    catalogoMedicamentos.forEachIndexed { index, med ->
+        val promocion = if (PromotionService.esPromocionable(med)) {
+            val desc = PromotionService.obtenerDescuento(med)
+            " [PROMOCIÓN ${(desc * 100).toInt()}%]"
+        } else ""
+        println("  ${index + 1}. ${med.nombre} (${med.dosificacion}) - $${String.format("%.2f", med.precio)}$promocion")
     }
-
-    println("COSTO FINAL: \$${String.format("%.2f", costoConsulta)}")
-    println("Estado: $estadoConsulta")
     println()
 
-    // Mensaje final según el estado
-    val mensajeFinal: String = if (estadoConsulta == "Confirmada") {
-        """
-        ✓ Su consulta ha sido confirmada exitosamente.
-        Por favor, llegue 10 minutos antes de su cita.
-        Recibirá un recordatorio por correo electrónico a: $email
-        """.trimIndent()
+    print("Ingrese los números de medicamentos separados por comas (ej: 1,3,5) o ENTER para ninguno: ")
+    val seleccionStr = readLine()?.trim() ?: ""
+
+    val medicamentosSeleccionados = if (seleccionStr.isBlank()) {
+        emptyList()
     } else {
-        """
-        Su consulta está pendiente de confirmación.
-        Nos pondremos en contacto con usted al teléfono: $telefono
-        para coordinar un nuevo horario.
-        """.trimIndent()
+        seleccionStr.split(",")
+            .mapNotNull { it.trim().toIntOrNull() }
+            .filter { it in 1..catalogoMedicamentos.size }
+            .map { catalogoMedicamentos[it - 1] }
     }
 
-    println(mensajeFinal)
     println()
-    println("=".repeat(60))
-    println("    Gracias por confiar en nuestra veterinaria")
-    println("=".repeat(60))
+    if (medicamentosSeleccionados.isNotEmpty()) {
+        ConsoleView.mostrarExito("Medicamentos seleccionados: ${medicamentosSeleccionados.size}")
+        medicamentosSeleccionados.forEach { println("  - ${it.nombre} (${it.dosificacion})") }
+    } else {
+        ConsoleView.mostrarInfo("No se seleccionaron medicamentos")
+    }
+
+    ConsoleView.mostrarSeparador()
+
+    // --- CÁLCULO DE COSTOS ---
+    ConsoleView.mostrarSubtitulo("CÁLCULO DE COSTOS")
+
+    val consulta1 = ConsultaService.crearConsulta(
+        cliente = cliente,
+        mascota = mascota,
+        medicamentos = medicamentosSeleccionados,
+        descripcion = motivoConsulta,
+        numeroMascotas = numeroMascotas
+    )
+
+    // Aplicar descuento por fecha si corresponde
+    val consultaFinal = ConsultaService.aplicarDescuentoPorFecha(consulta1, fechaConsulta)
+
+    println("Costo base de consulta: $30,000")
+    if (numeroMascotas > 1) {
+        println("Descuento por múltiples mascotas (15%): -$4,500")
+    }
+
+    val descuentoFecha = RangoUtils.calcularDescuentoPromocional(fechaConsulta)
+    if (descuentoFecha > 0) {
+        println("Descuento promocional por fecha (${(descuentoFecha * 100).toInt()}%): Aplicado")
+    }
+
+    if (medicamentosSeleccionados.isNotEmpty()) {
+        val totalMedicamentos = PromotionService.calcularTotalConPromociones(medicamentosSeleccionados)
+        println("Total medicamentos: $${String.format("%.2f", totalMedicamentos)}")
+    }
+
+    println()
+    ConsoleView.mostrarExito("TOTAL A PAGAR: $${String.format("%.2f", consultaFinal.total)}")
+    println()
+
+    ConsoleView.mostrarSeparador()
+
+    // --- RESUMEN DE LA CONSULTA ---
+    ConsoleView.mostrarEncabezado("RESUMEN DE LA CONSULTA")
+
+    println("ID Consulta: ${consultaFinal.id}")
+    println("Estado: $estadoConsulta")
+    println("Fecha registro: ${consultaFinal.fecha}")
+    println()
+
+    println("CLIENTE:")
+    println("  Nombre: ${cliente.nombre}")
+    println("  Email: ${cliente.email}")
+    println("  Teléfono: ${cliente.telefono}")
+    println()
+
+    println("MASCOTA:")
+    println("  Nombre: ${mascota.nombre}")
+    println("  Especie: ${mascota.especie}")
+    println("  Edad: ${mascota.edad} años")
+    println("  Peso: ${mascota.peso} kg")
+    println()
+
+    println("DETALLES:")
+    println("  Motivo: $motivoConsulta")
+    println("  Fecha agendada: $fechaStr")
+    println("  Hora agendada: $horaStr")
+    println("  Número de mascotas: $numeroMascotas")
+    println()
+
+    if (medicamentosSeleccionados.isNotEmpty()) {
+        println("MEDICAMENTOS (${medicamentosSeleccionados.size}):")
+        medicamentosSeleccionados.forEach { med ->
+            val (precioFinal, desc) = PromotionService.calcularPrecioConDescuento(med)
+            val descStr = if (desc > 0) " [${(desc * 100).toInt()}% desc]" else ""
+            println("  - ${med.nombre} (${med.dosificacion}): $${String.format("%.2f", precioFinal)}$descStr")
+        }
+        println()
+    }
+
+    println("TOTAL: $${String.format("%.2f", consultaFinal.total)}")
+    println()
+
+    if (disponible) {
+        ConsoleView.mostrarExito("Consulta confirmada - Por favor llegue 10 minutos antes")
+    } else {
+        ConsoleView.mostrarAdvertencia("Consulta pendiente - Nos comunicaremos para confirmar horario")
+    }
+
+    ConsoleView.mostrarSeparador()
+
+    // =========================================================================
+    // PARTE 2: DEMOSTRACIÓN TÉCNICA DE FUNCIONALIDADES AVANZADAS
+    // =========================================================================
+
+    println()
+    println("Presione ENTER para ver el resumen técnico de funcionalidades...")
+    readLine()
+    println()
+
+    ConsoleView.mostrarEncabezado("RESUMEN TÉCNICO - FUNCIONALIDADES KOTLIN AVANZADAS")
+
+    // --- Crear datos de ejemplo para demostración ---
+    val consulta2 = ConsultaService.crearConsulta(
+        cliente = cliente,
+        mascota = mascota,
+        medicamentos = listOf(Antiparasitario()),
+        descripcion = "Control de seguimiento",
+        numeroMascotas = 1
+    )
+
+    val cliente2 = Cliente(nombreCliente, email, "+56 (912) 345-6789")
+    val cliente3 = Cliente("María González", "maria@example.com", "+56 (987) 654-3210")
+
+    val med1 = Medicamento("Amoxicilina", "500mg", 15000.0, 50)
+    val med2 = Medicamento("Amoxicilina", "500mg", 12000.0, 30)
+    val med3 = Medicamento("Ibuprofeno", "200mg", 5000.0, 100)
+
+    // --- DEMOSTRACIÓN 1: REGEX Y RANGES ---
+    ConsoleView.mostrarSubtitulo("1. REGEX Y RANGES")
+
+    println("✓ Email validado con Regex: $email")
+    println("✓ Teléfono formateado con Regex: $telefono")
+    println("✓ Cantidad validada en rango (1-100): $numeroMascotas")
+    println("✓ Fecha verificada en periodo promocional: ${RangoUtils.estaEnPeriodoPromocional(fechaConsulta)}")
+    println()
+
+    // --- DEMOSTRACIÓN 2: ANOTACIONES Y REFLECTION ---
+    ConsoleView.mostrarSubtitulo("2. ANOTACIONES Y REFLECTION")
+
+    val promocionales = PromotionService.identificarPromocionales(catalogoMedicamentos)
+    println("✓ Medicamentos promocionales identificados: ${promocionales.size}")
+    promocionales.forEach { med ->
+        val desc = PromotionService.obtenerDescuento(med)
+        println("  - ${med.nombre}: ${(desc * 100).toInt()}% descuento")
+    }
+    println()
+
+    println("✓ Análisis con Reflection:")
+    println("  Cliente: ${ReflectionUtils.obtenerNombresPropiedades(Cliente::class).size} propiedades")
+    println("  Consulta: ${ReflectionUtils.obtenerNombresMetodos(Consulta::class).size} métodos")
+    println()
+
+    // --- DEMOSTRACIÓN 3: OPERATOR OVERLOADING ---
+    ConsoleView.mostrarSubtitulo("3. OPERATOR OVERLOADING")
+
+    val consultaCombinada = consultaFinal + consulta2
+    println("✓ Operator + (combinar consultas):")
+    println("  Consulta 1: $${String.format("%.2f", consultaFinal.total)}")
+    println("  Consulta 2: $${String.format("%.2f", consulta2.total)}")
+    println("  Combinada: $${String.format("%.2f", consultaCombinada.total)}")
+    println()
+
+    println("✓ Operator == (comparar medicamentos):")
+    println("  ${med1.nombre} == ${med2.nombre}: ${med1 == med2}")
+    println("  ${med1.nombre} == ${med3.nombre}: ${med1 == med3}")
+    println()
+
+    // --- DEMOSTRACIÓN 4: DESESTRUCTURACIÓN ---
+    ConsoleView.mostrarSubtitulo("4. DESESTRUCTURACIÓN")
+
+    val (nombre, emailDest, telefonoDest) = cliente
+    println("✓ Cliente desestructurado:")
+    println("  val (nombre, email, telefono) = cliente")
+    println("  → $nombre, $emailDest, $telefonoDest")
+    println()
+
+    val (clienteDest, medicamentosDest, totalDest) = consultaCombinada
+    println("✓ Consulta desestructurada:")
+    println("  val (cliente, medicamentos, total) = consulta")
+    println("  → ${clienteDest.nombre}, ${medicamentosDest.size} medicamentos, $${String.format("%.2f", totalDest)}")
+    println()
+
+    // --- DEMOSTRACIÓN 5: EQUALS/HASHCODE ---
+    ConsoleView.mostrarSubtitulo("5. EQUALS/HASHCODE - PREVENCIÓN DE DUPLICADOS")
+
+    val listaClientes = listOf(cliente, cliente2, cliente3)
+    val (unicos, duplicados) = ConsultaService.detectarClientesDuplicados(listaClientes)
+
+    println("✓ Detección de clientes duplicados:")
+    println("  Total clientes: ${listaClientes.size}")
+    println("  Únicos: ${unicos.size}")
+    println("  Duplicados: ${duplicados.size}")
+    if (duplicados.isNotEmpty()) {
+        duplicados.forEach { println("    - ${it.nombre} (${it.email})") }
+    }
+    println()
+
+    val listaMedicamentos = listOf(med1, med2, med3)
+    val (medicamentosUnicos, medicamentosDuplicados) = ConsultaService.detectarMedicamentosDuplicados(listaMedicamentos)
+
+    println("✓ Detección de medicamentos duplicados:")
+    println("  Total medicamentos: ${listaMedicamentos.size}")
+    println("  Únicos: ${medicamentosUnicos.size}")
+    println("  Duplicados: ${medicamentosDuplicados.size}")
+    if (medicamentosDuplicados.isNotEmpty()) {
+        medicamentosDuplicados.forEach { println("    - ${it.nombre} ${it.dosificacion}") }
+    }
+    println()
+
+    ConsoleView.mostrarSeparador()
+    ConsoleView.mostrarExito("SISTEMA EJECUTADO EXITOSAMENTE")
+    ConsoleView.mostrarInfo("Consulta registrada y funcionalidades Kotlin demostradas")
+    println()
+    println("Gracias por usar el Sistema de Gestión Veterinaria")
+    println()
 }
